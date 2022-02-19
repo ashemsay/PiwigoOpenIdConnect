@@ -115,6 +115,23 @@ function oidc_retrieve(OpenIDConnectClient $oidc, $force_registration = false) {
 	$sub = $oidc->requestUserInfo('sub');
 	$email = $oidc->requestUserInfo('email');
 	$name = get_preferred_username($oidc);
+	$groups_claim = $config['groups_claim'] ?? 'groups';
+	$groups = $oidc->requestUserInfo($groups_claim);
+
+	// Test if user is member of allowed groups if any is set
+	if (!empty($groups) && !empty($config['allowed_groups'])) {
+		$allowed_groups_array = preg_split("/\s+/", $config['allowed_groups']);
+		$allowed = false;
+		foreach ($allowed_groups_array as $allowed_group){
+			if (in_array($allowed_group, $groups)) {
+				$allowed = true;
+				break;
+			}
+		}
+		if (!$allowed) {
+			return null;
+		}
+	}
 
 	// Try to find the resource owner in the OIDC user table
 	$query = '
