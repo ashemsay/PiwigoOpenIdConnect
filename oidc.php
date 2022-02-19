@@ -119,7 +119,10 @@ function oidc_retrieve(OpenIDConnectClient $oidc, $force_registration = false) {
 	$groups = $oidc->requestUserInfo($groups_claim);
 
 	// Test if user is member of allowed groups if any is set
-	if (!empty($groups) && !empty($config['allowed_groups'])) {
+	if (!empty($config['allowed_groups'])) {
+		if (empty($groups)) {
+			return null;
+		}
 		$allowed_groups_array = preg_split("/\s+/", $config['allowed_groups']);
 		$allowed = false;
 		foreach ($allowed_groups_array as $allowed_group){
